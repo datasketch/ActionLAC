@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575043281344.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2027066508",
+    "id" : "99B03339",
+    "lastKnownWriteTime" : 1575220747,
+    "last_content_update" : 1575220747337,
+    "path" : "~/Repos/cambioClimatico/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "264,8",
+        "scrollLine" : "239",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

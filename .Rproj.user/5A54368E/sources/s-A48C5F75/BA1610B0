@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575044549341.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "BA1610B0",
+    "lastKnownWriteTime" : 1575078511,
+    "last_content_update" : 1575078511422,
+    "path" : "~/Repos/cambioClimatico/www/styles.css",
+    "project_path" : "www/styles.css",
+    "properties" : {
+        "cursorPosition" : "99,17",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "css"
+}

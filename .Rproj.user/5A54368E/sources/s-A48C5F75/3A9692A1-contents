@@ -1,0 +1,6 @@
+total <- c(1,3,3,4)
+animales <- c('perro', 'zorro', 'león', 'ardilla')
+
+tabla <- data.frame(Valor = c(1,2,3,4), cosas = c('canasto', 'libron', 'iman', 'lupa'))
+
+l <- list(animales = list(mamiferos = c('Delfin',  'Perro'), acuaticos = c('Tiburon', 'estrellita')),  tabla = tabla)

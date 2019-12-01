@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575218772508.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B64E1431",
+    "lastKnownWriteTime" : 1567702055,
+    "last_content_update" : 1567702055,
+    "path" : "~/Repos/transparencia-2019/app/server.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "523,25",
+        "scrollLine" : "517"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
