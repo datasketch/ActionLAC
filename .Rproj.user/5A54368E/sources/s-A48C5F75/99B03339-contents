@@ -2,7 +2,7 @@ library(dsAppLayout)
 library(shiny)
 library(tidyverse)
 library(dsCustom)
-library(highcharter)
+library(hgchmagic)
 library(DT)
 
 # Data
@@ -158,6 +158,7 @@ ui <- dsAppPanels( styles = styles,
                    panel(title =  uiOutput('title_info'), color = "olive", collapsed = FALSE, width = 550,
                          head = NULL,
                          body = list(
+                           highchartOutput('barras'),
                            dataTableOutput('data_view')
                          )
                    )
@@ -373,7 +374,31 @@ server <- function(input, output, session) {
     dt <- data_filter()
     if (is.null(dt)) return()
     dt <- dt %>% select(País, `Acciones climáticas`)
-    dt
+    DT::datatable(dt,   
+                  rownames = F,
+                  options = list(
+                    pageLength = 5, 
+                    language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'),
+                    lengthChange = F,
+                    scrollX = T,
+                    scrollY = T,
+                    initComplete = JS(
+                      "function(settings, json) {",
+                      "$(this.api().table().header()).css({'background-color': '#9FBD36', 'color': '#fff'});",
+                      "}"),
+                    searching = FALSE
+                  )) %>% 
+      formatStyle( 0 , target= 'row',color = '#0A446B', fontSize ='13px', lineHeight='15px')
+  })
+  
+  output$barras <- renderHighchart({
+    dt <- data_filter()
+    if (is.null(dt)) return()
+    dt <- dt %>% 
+           group_by(País) %>% 
+             summarise(`Total Acciones climáticas` = n())
+    hgch_bar_CatNum(dt, opts = list(orientation = 'hor', sort = 'desc', verLabel = ' '))
+    
   })
   
 }
