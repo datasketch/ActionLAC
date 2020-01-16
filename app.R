@@ -1,12 +1,23 @@
 library(dsAppLayout)
 library(shiny)
-library(tidyverse)
 library(dsCustom)
 library(hgchmagic)
 library(DT)
+library(airtabler)
 
 # Data
-info <-  read_csv('data/ActionLAC_filter.csv', col_types = cols(.default = "c"))
+info <- airtable(
+  base = "appnDck6o1bZAa94N", 
+  tables = c("data")
+)
+
+info <- info$data$select_all()
+info$País <- iconv(info$País,to="ASCII//TRANSLIT")
+
+info <- info %>% filter(País %in% c("Argentina", "Bolivia", "Paraguay", "Chile", "Brasil", "Ecuador", "Costa Rica", "Guatemala", "Mexico",
+                                    "Venezuela", "El Salvador", "Peru"))
+
+info <- info[!grepl('no|No|NO|nO',info$`Ya incluir en el mapa?`),]
 mapLam <- jsonlite::fromJSON("data/latin-america.json", simplifyVector = FALSE)
 
 
@@ -73,12 +84,11 @@ h3 {
 }
 
 .title-filter {
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.07em;
   color: #9FBD36;
-  margin: 1px 0px;
+  margin: 0px 0px;
 }
 
 .selectize-input,.input-autosuggest,.input-autosuggest input {
@@ -96,6 +106,27 @@ h3 {
 
 .panel {
 border-top: 2px solid  #9FBD36;
+}
+
+h3#panel-filtros {
+ color:  #9FBD36;
+}
+
+.panel#info-cont .panel-content{
+width: 100%;
+height: 100%;
+display: flex;
+justify-content: center;
+align-items: flex-start;
+}
+
+.panel#info-cont {
+border-top: 2px solid  #1980A6;
+height: -webkit-fill-available;
+}
+
+.panel-head#close_remove {
+ display: none;
 }
 
 ::-webkit-scrollbar{
@@ -117,36 +148,89 @@ border-top: 2px solid  #9FBD36;
     background: #CCCCCC;
 }
 
+#id-but-mod {
+    white-space: nowrap;
+    transform: rotate(-90deg) translateX(-43%);
+    position: absolute;
+    background: transparent;
+    border: 0px;
+    font-size: 17px;
+    cursor: pointer;
+    color: #1980A6;
+    letter-spacing: 0.05em;
+     text-transform: uppercase;
+}
+
+#body-info {
+    display: contents;
+}
+
+.head-modal {
+ color : #ffffff !important;
+ font-size: 35px;
+  padding: 25px 0px;
+}
+
+.info-tool {
+ display: flex;
+}
+
+
+.tooltip-inf {
+ cursor: pointer;
+ position: relative;
+ margin-left: 3px;
+}
+
+.tooltip-inf .tooltiptext {
+  visibility: hidden;
+  width: 170px;
+  higth: auto;
+  background-color: #fafafa;
+  color: #9FBD36;
+  position: absolute;
+  z-index: 9999;
+  top: 0;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  font-weight: 400;
+  letter-spacing: normal;
+  font-size: 0.75rem;
+}
+
+.tooltip-inf:hover .tooltiptext {
+  visibility: visible;
+}
+
 "
 ui <- dsAppPanels( styles = styles,
-                   header =  div(style="", class="head", "Mapa Acción LAC"
+                   header =  div(style="", class="head", "Acciones Climáticas LAC"
                    ),
-                   panel(title = modalBtn(modal_id = 'info_modal', label = 'Información de ayuda'), 
-                         color = "olive", collapsed = FALSE, width =  50),
+                   panel(id = 'info-cont', title = '', id_head = 'close_remove',
+                         color = "olive", collapsed = FALSE, width =  50, id_body = 'body-info',
+                         body =  modalBtn(id = 'id-but-mod', modal_id = 'info_modal', label = HTML('Información de ayuda <i class="fa fa-info-circle"></i>'))),
                    modal(id = 'info_modal',
-                         title = div( class="head-modal", "Mapa Acción LAC"
+                         title = div( class="head-modal", "Acciones Climáticas LAC"
                          ),
                          div(class = 'cont-modal',
-                         div(
-                             p("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam
-                                nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam
-                                erat volutpat. Ut wisi enim ad minim veniam, quis")
-                         ),
-                         div(class = "img-modal",
-                             img(class = "img-cont", src = "https://fakeimg.pl/200/"),
-                             img(class = "img-cont", src = "https://fakeimg.pl/200/"),
-                             img(class = "img-cont", src = "https://fakeimg.pl/200/"),
-                             img(class = "img-cont", src = "https://fakeimg.pl/200/"))
-                   )),
-                   panel(title = h3('FILTROS DE BÚSQUEDA'), color = "olive", collapsed = FALSE, width = 350,
+                             div(
+                               p("Somos una plataforma cuyo objetivo es acelerar la acción climática en América Latina. Para eso, brindamos apoyo a actores que trabajan en acción climática en las principales etapas de una iniciativa: movilizando compromisos, articulando actores, fortaleciendo capacidades para el diseño de planes climáticos, catalizando financiamiento semilla, promoviendo aprendizaje cruzado entre iniciativas y promoviendo la difusión de la acción climática de la región.")
+                             ),
+                             div(class = "img-modal",
+                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"),
+                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"),
+                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"),
+                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"))
+                         )),
+                   panel(title = h3(id = "panel-filtros", ' FILTROS DE BÚSQUEDA'), color = "olive", collapsed = FALSE, width = 350,
                          head = NULL,
                          body = list(
-                                 uiOutput('pais'),
-                                 uiOutput('herramientas'),
-                                 uiOutput('area'),
-                                 uiOutput('tipo'),
-                                 uiOutput('actor'),
-                                 uiOutput('institucion')
+                           uiOutput('pais'),
+                           uiOutput('herramientas'),
+                           uiOutput('area'),
+                           uiOutput('tipo'),
+                           uiOutput('actor'),
+                           uiOutput('institucion')
                          )
                    ),
                    panel(title = h3('RESULTADOS AVANZADOS'), color = "olive", collapsed = FALSE, width = 500,
@@ -169,12 +253,15 @@ server <- function(input, output, session) {
   # filtros
   
   output$pais <- renderUI({
-    list_p <- unique(info$País)
-    selectizeInput('name_pais',  HTML('<p class = "title-filter">PAÍS</p>'), list_p, selected = NULL, multiple = T,
+    list_p <- sort(unique(info$País))
+    
+    div(
+      HTML('<div class= "info-tool title-filter"> PAÍS </div>'),
+    selectizeInput('name_pais',  ' ', list_p, selected = NULL, multiple = T,
                    options = list(
                      placeholder = "Todos los países",
-                     maxItems = 1)
-    )
+                     plugins= list('remove_button'))
+    ))
   })
   
   output$title_info <- renderUI({
@@ -183,7 +270,7 @@ server <- function(input, output, session) {
     if (is.null(pais)) {
       tx <- 'Todos los países'
     } else {
-      tx <- pais
+      tx <- paste0(pais, collapse = ' - ')
     } 
     
     HTML(paste0('<h3>', tx,  '</h3>'))
@@ -194,7 +281,7 @@ server <- function(input, output, session) {
     if (is.null(pais)) {
       dt <- info
     } else {
-      dt <- info %>% filter(País == pais)
+      dt <- info %>% filter(País %in% pais)
     }
     dt
   })
@@ -203,11 +290,13 @@ server <- function(input, output, session) {
   output$herramientas <- renderUI({
     dt <- data_pais()
     if (is.null(dt)) return()
-    list_h <- unique(dt$Herramienta)
-    selectizeInput('name_tool',  HTML('<p class = "title-filter">HERRAMIENTA</p>'), selected = NULL, multiple = T, list_h,  options = list(
+    list_h <- sort(unique(dt$Herramienta))
+    div(
+      HTML('<div class= "info-tool title-filter"> HERRAMIENTA  <div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext">Herramienta por medio de la cuál se ha relevado el compromiso de acción climática</span</div></div></div>'),
+    selectizeInput('name_tool',  ' ', selected = NULL, multiple = T, list_h,  options = list(
       placeholder = "Todas las herramientas",
-      maxItems = 1)
-    )
+      plugins= list('remove_button'))
+    ))
   })
   
   data_herramientas <- reactive({
@@ -219,17 +308,24 @@ server <- function(input, output, session) {
       dt <- data_pais() %>% filter(Herramienta %in% herramienta) 
     }
     
-    dt 
+    dt$Herramienta[is.na(dt$Herramienta)] <- 'Sin inf'
+    dt %>% filter(Herramienta != 'Sin inf')
   })
   
   output$area <- renderUI({
     dt <- data_herramientas()
     if (is.null(dt)) return()
     list_a <- unique(dt$`Área de Acción`)
-    selectizeInput('name_area',  HTML('<p class = "title-filter">ÁREA DE ACCIÓN</p>'), list_a, selected = NULL, multiple = T, options = list(
-      placeholder = "Todas las áreas de acción",
-      maxItems = 1)
-    )
+    list_a <- sort(list_a[!is.na(list_a)])
+    
+    div(
+      HTML('<div class= "info-tool title-filter"> ÁREA DE ACCIÓN <div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext">Se refiere al área de impacto de la acción climática</span</div></div></div>'),
+    selectizeInput('name_area',  ' ', list_a, 
+                   selected = NULL, multiple = T, 
+                   options = list(
+                   placeholder = "Todas las áreas de acción",
+                   plugins= list('remove_button'))
+    ))
   })
   
   
@@ -241,17 +337,22 @@ server <- function(input, output, session) {
       dt <- data_herramientas() %>% filter(`Área de Acción` %in% area) 
     }
     
-    dt
+    dt$`Área de Acción`[is.na(dt$`Área de Acción`)] <- 'Sin inf'
+    dt %>% filter(`Área de Acción` != 'Sin inf')
   })
   
   output$tipo <- renderUI({
     dt <- data_area()
     if (is.null(dt)) return()
     list_t <- unique(dt$`Tipo de Acción`)
-    selectizeInput('name_tipo',  HTML('<p class = "title-filter">TIPO DE ACCIÓN</p>'), list_t, selected = NULL, multiple = T, options = list(
-      placeholder = "Todas los tipos de acción",
-      maxItems = 1)
-    )
+    list_t <- sort(list_t[!is.na(list_t)])
+    
+    div(
+      HTML('<div class= "info-tool title-filter"> TIPO DE ACCIÓN  <div class="tooltip-inf"> <i class="fa fa-info-circle"></i><span class="tooltiptext">Se refiere al tipo de estrategia llevada a cabo para hacer frente al cambio climático </span</div></div></div>'),
+    selectizeInput('name_tipo',  ' ', list_t, selected = NULL, multiple = T, options = list(
+      placeholder = "Todos los tipos de acción",
+      plugins= list('remove_button'))
+    ))
   })
   
   data_tipo <- reactive({
@@ -262,17 +363,18 @@ server <- function(input, output, session) {
       dt <- data_area() %>% filter(`Tipo de Acción` %in% tipo) 
     }
     
-    dt 
+    dt$`Tipo de Acción`[is.na(dt$`Tipo de Acción`)] <- 'Sin inf'
+    dt %>% filter(`Tipo de Acción` != 'Sin inf')
   })
   
   
   output$actor <- renderUI({
     dt <- data_tipo()
     if (is.null(dt)) return()
-    list_ac <-  unique(dt$`Tipo de Actor`)
+    list_ac <-  sort(unique(dt$`Tipo de Actor`))
     selectizeInput('name_actor',  HTML('<p class = "title-filter">TIPO DE ACTOR</p>'), list_ac, selected = NULL, multiple = T, options = list(
-      placeholder = "Todas los actores",
-      maxItems = 1)
+      placeholder = "Todos los actores",
+      plugins= list('remove_button'))
     )
   })
   
@@ -291,12 +393,18 @@ server <- function(input, output, session) {
   output$institucion <- renderUI({
     dt <- data_tipo()
     if (is.null(dt)) return()
-    list_i <- unique(dt$`Instituición o red`)
+    list_i <- sort(unique(dt$`Instituición o red`))
     
+    # div(
+    #   HTML('<p class = "title-filter">INSTITUCIÓN</p>'),
+    #   searchInput('name_inst', data =  list_i, placeholder = 'Búsqueda por Institución o red')
+    # )
     div(
-      HTML('<p class = "title-filter">INSTITUCIÓN</p>'),
-      searchInput('name_inst', data =  list_i, placeholder = 'Búsqueda por Institución o red')
-    )
+      HTML('<div class= "info-tool title-filter"> INSTITUCIÓN / MUNICIPALIDAD </div>'),
+    selectizeInput('name_inst', ' ', list_i, selected = NULL, multiple = T, options = list(
+      placeholder = "Todos institución/municipalidad",
+      plugins= list('remove_button'))
+    ))
   })
   
   
@@ -304,9 +412,7 @@ server <- function(input, output, session) {
   data_filter <- reactive({
     dt <- data_actor()
     inst <- input$name_inst
-    if (is.null(inst)) return()
-    
-    if (inst == "") {
+    if (is.null(inst)) {
       dt <- dt 
     } else {
       dt <- dt %>% filter(`Instituición o red` %in% inst)  
@@ -318,24 +424,30 @@ server <- function(input, output, session) {
   observeEvent(input$hcClicked, {
     if (is.null(input$hcClicked)) return()
     updateSelectizeInput(session, 'name_pais', selected = input$hcClicked)
-
+    
   })
-
-
+  
+  
   output$mapa <- renderHighchart({
     pais <- input$name_pais
-
+    
     dt_p <- data_filter()
     if (is.null(dt_p)) return()
-
+    
+    dt_p <- dt_p %>% group_by(name = País) %>% summarise(z = n())
+    
     if (is.null(pais)) {
-      dt_p <- dt_p %>% group_by(name = País) %>% summarise(z = n())
+      dt_p <- dt_p
     } else {
-      dt_p <- data.frame(name = pais, z = 15, color = '#1980A6')
+      dt_f <- data.frame(name = setdiff(unique(info$País), pais), z = 3, color = '#b3ddec')
+      dt_i <- data.frame(name = pais, z = 15, color = '#1980A6')
+      dt_p <- bind_rows(dt_i, dt_f)
     }
-
+    
+    #print(dt_p)
+    
     myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
-
+    
     highchart(type = "map") %>%
       hc_chart(backgroundColor = "transparent",
                style = list(
@@ -351,16 +463,16 @@ server <- function(input, output, session) {
                         )) %>%
       hc_legend(enabled = FALSE) %>%
       hc_colorAxis(minColor = "#b3ddec", maxColor = "#1980A6") %>%
-      hc_plotOptions(series = list(states = list(hover = list(color = '#FFCDAA'),
-                                                 select = list(color = '#1980A6')), allowPointSelect = TRUE,
+      hc_plotOptions(series = list(states = list(hover = list(color = '#1980A6'),
+                                                 select = list(color = '#1980A6')), allowPointSelect = F,
                                    cursor = 'pointer', events = list(click = myFunc)))
   })
-
+  
   output$text_info <- renderUI({
     data_info <- data_filter()
     if (is.null(data_info)) return()
-
-
+    
+    
     l<- map(1:nrow(data_info), function(i) {
       if (identical(data_info[i,]$`Acciones climáticas`, character(0))) return('')
       tx <- HTML(paste0('<p>', unique(data_info[i,]$`Acciones climáticas`), '</p>'))
@@ -368,12 +480,12 @@ server <- function(input, output, session) {
     })
     l
   })
-
-
+  
+  
   output$data_view <- renderDataTable({
     dt <- data_filter()
     if (is.null(dt)) return()
-    dt <- dt %>% select(País, `Acciones climáticas`)
+    dt <- dt %>% select(País, `Acciones climáticas`, `Instituición o red`)
     DT::datatable(dt,   
                   rownames = F,
                   options = list(
@@ -384,7 +496,7 @@ server <- function(input, output, session) {
                     scrollY = T,
                     initComplete = JS(
                       "function(settings, json) {",
-                      "$(this.api().table().header()).css({'background-color': '#9FBD36', 'color': '#fff'});",
+                      "$(this.api().table().header()).css({'background-color': '#1980A6', 'color': '#fff'});",
                       "}"),
                     searching = FALSE
                   )) %>% 
@@ -394,11 +506,18 @@ server <- function(input, output, session) {
   output$barras <- renderHighchart({
     dt <- data_filter()
     if (is.null(dt)) return()
-    dt <- dt %>% 
-           group_by(País) %>% 
-             summarise(`Total Acciones climáticas` = n())
-    hgch_bar_CatNum(dt, opts = list(orientation = 'hor', sort = 'desc', verLabel = ' '))
-    
+    dt <- dt %>%
+      group_by(`Área de Acción`) %>%
+      summarise(`Total Acciones Climáticas por área de acción` = n())
+    hgch_bar_CatNum(dt, opts = list(orientation = 'hor', sort = 'desc',
+                                    horLabel = ' ', verLabel = ' ', agg_text = ' ',
+                                    title = 'Total Acciones Climáticas por área de acción',
+                                    theme = tma(custom = list(stylesX_lineWidth = 0, 
+                                                              #height = 570,
+                                                              colors = '#9FBD36',
+                                                              font_family = "Raleway",
+                                                              font_size = '11px'))))
+
   })
   
 }
