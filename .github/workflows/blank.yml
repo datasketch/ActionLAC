@@ -1,0 +1,34 @@
+name: Deploy
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install R
+      run: |
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+        sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
+        sudo apt update
+        sudo apt install -y r-base
+    - name: Install base dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential && sudo apt-get install -y libcurl4-gnutls-dev && sudo apt-get install -y libxml2-dev && sudo apt-get install -y libssl-dev && sudo apt-get install -y libapparmor-dev && sudo apt-get install -y libglpk-dev 
+    - name: Install needed packages
+      run: |
+        sudo Rscript -e "install.packages('devtools')"
+        sudo Rscript -e "install.packages('tidyverse')"
+        sudo Rscript -e "install.packages('shiny')"
+        sudo Rscript -e "install.packages('googlesheets4')"
+        sudo Rscript -e "devtools::install_github('jpmarindiaz/homodatum')"
+        sudo Rscript -e "devtools::install_github('jpmarindiaz/datafringe')"
+        sudo Rscript -e "devtools::install_github('datasketch/shinypanels')"
+        sudo Rscript -e "devtools::install_github('datasketch/shinyinvoer')"
+        sudo Rscript -e "devtools::install_github('randommonkey/hgchmagic')"
+        sudo Rscript -e "devtools::install_github('r-lib/vctrs')"
