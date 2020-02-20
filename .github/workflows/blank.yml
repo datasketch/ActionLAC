@@ -35,5 +35,7 @@ jobs:
         sudo Rscript -e "devtools::install_github('r-lib/vctrs')"
     - name: Config deploy settings
       run: |
-        sudo Rscript -r "rsconnect::setAccountInfo(name='${{ secrets.SHINY_NAME }}', token='${{ secrets.SHINY_TOKEN }}', secret='${{ secrets.SHINY_SECRET }}')"
-        sudo Rscript -r "rsconnect::deployApp()"
+        sudo Rscript -e "rsconnect::setAccountInfo(name='${{ secrets.SHINY_NAME }}', token='${{ secrets.SHINY_TOKEN }}', secret='${{ secrets.SHINY_SECRET }}')"
+        sudo Rscript -e "rsconnect::deployApp()"
+
+cambioClimatico/.github/workflows/
