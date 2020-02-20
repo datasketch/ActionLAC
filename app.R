@@ -1,17 +1,22 @@
-library(dsAppLayout)
+library(shinypanels)
 library(shiny)
-library(dsCustom)
+library(shinyinvoer)
 library(hgchmagic)
 library(DT)
-library(airtabler)
+library(googlesheets4)
 
-# Data
-info <- airtable(
-  base = "appnDck6o1bZAa94N", 
-  tables = c("data")
+
+sheets_deauth()
+# set values in options
+options(
+  gargle_oauth_cache =  ".secrets",
+  gargle_oauth_email = "camila@randommonkey.io"
 )
 
-info <- info$data$select_all()
+# Data
+sheets_get("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
+info <- read_sheet("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
+
 info$País <- iconv(info$País,to="ASCII//TRANSLIT")
 
 info <- info %>% filter(País %in% c("Argentina", "Bolivia", "Paraguay", "Chile", "Brasil", "Ecuador", "Costa Rica", "Guatemala", "Mexico",
@@ -122,31 +127,13 @@ align-items: flex-start;
 
 .panel#info-cont {
 border-top: 2px solid  #1980A6;
-height: -webkit-fill-available;
 }
 
 .panel-head#close_remove {
  display: none;
 }
 
-::-webkit-scrollbar{
-  width: 4px;
-  height: 4px;
-}
 
-::-webkit-scrollbar-track{
-  background: #e2eaed;
-}
-
-::-webkit-scrollbar-thumb{
-  background: #CCCCCC;
-}
-
-::-webkit-scrollbar:focus {
-    overflow: scroll;
-    display:block;
-    background: #CCCCCC;
-}
 
 #id-but-mod {
     white-space: nowrap;
@@ -203,13 +190,13 @@ height: -webkit-fill-available;
 }
 
 "
-ui <- dsAppPanels( styles = styles,
+ui <- panelsPage( styles = styles,
                    header =  div(style="", class="head", "Acciones Climáticas LAC"
                    ),
                    panel(id = 'info-cont', title = '', id_head = 'close_remove',
                          color = "olive", collapsed = FALSE, width =  50, id_body = 'body-info',
-                         body =  modalBtn(id = 'id-but-mod', modal_id = 'info_modal', label = HTML('Información de ayuda <i class="fa fa-info-circle"></i>'))),
-                   modal(id = 'info_modal',
+                         body =  shinypanels::modalButton(id = 'id-but-mod', modal_id = 'info_modal', label = HTML('Información de ayuda <i class="fa fa-info-circle"></i>'))),
+                   shinypanels::modal(id = 'info_modal',
                          title = div( class="head-modal", "Acciones Climáticas LAC"
                          ),
                          div(class = 'cont-modal',
