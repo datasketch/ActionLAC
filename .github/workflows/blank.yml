@@ -26,9 +26,14 @@ jobs:
         sudo Rscript -e "install.packages('tidyverse')"
         sudo Rscript -e "install.packages('shiny')"
         sudo Rscript -e "install.packages('googlesheets4')"
+        sudo Rscript -e "devtools::install_github('rstudio/rsconnect')"
         sudo Rscript -e "devtools::install_github('jpmarindiaz/homodatum')"
         sudo Rscript -e "devtools::install_github('jpmarindiaz/datafringe')"
         sudo Rscript -e "devtools::install_github('datasketch/shinypanels')"
         sudo Rscript -e "devtools::install_github('datasketch/shinyinvoer')"
         sudo Rscript -e "devtools::install_github('randommonkey/hgchmagic')"
         sudo Rscript -e "devtools::install_github('r-lib/vctrs')"
+    - name: Config deploy settings
+      run: |
+        sudo Rscript -r "rsconnect::setAccountInfo(name='${{ secrets.SHINY_NAME }}', token='${{ secrets.SHINY_TOKEN }}', secret='${{ secrets.SHINY_SECRET }}')"
+        sudo Rscript -r "rsconnect::deployApp()"
