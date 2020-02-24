@@ -472,7 +472,8 @@ server <- function(input, output, session) {
   output$data_view <- renderDataTable({
     dt <- data_filter()
     if (is.null(dt)) return()
-    dt <- dt %>% select(País, `Acciones climáticas`, `Instituición o red`)
+    dt <- dt %>% select(País, `Acciones climáticas`, Progreso, `Instituición o red`)
+    dt <- Filter(function(x) !all(is.na(x)), dt) 
     DT::datatable(dt,   
                   rownames = F,
                   options = list(
