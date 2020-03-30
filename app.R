@@ -7,15 +7,10 @@ library(googlesheets4)
 
 
 sheets_deauth()
-# set values in options
-options(
-  gargle_oauth_cache =  ".secrets",
-  gargle_oauth_email = "camila@randommonkey.io"
-)
 
 # Data
 sheets_get("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
-info <- read_sheet("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
+info <- sheets_read("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
 
 info$País <- iconv(info$País,to="ASCII//TRANSLIT")
 
@@ -193,23 +188,7 @@ border-top: 2px solid  #1980A6;
 ui <- panelsPage( styles = styles,
                    header =  div(style="", class="head", "Acciones Climáticas LAC"
                    ),
-                   panel(id = 'info-cont', title = '', id_head = 'close_remove',
-                         color = "olive", collapsed = FALSE, width =  50, id_body = 'body-info',
-                         body =  shinypanels::modalButton(id = 'id-but-mod', modal_id = 'info_modal', label = HTML('Información de ayuda <i class="fa fa-info-circle"></i>'))),
-                   shinypanels::modal(id = 'info_modal',
-                         title = div( class="head-modal", "Acciones Climáticas LAC"
-                         ),
-                         div(class = 'cont-modal',
-                             div(
-                               p("Somos una plataforma cuyo objetivo es acelerar la acción climática en América Latina. Para eso, brindamos apoyo a actores que trabajan en acción climática en las principales etapas de una iniciativa: movilizando compromisos, articulando actores, fortaleciendo capacidades para el diseño de planes climáticos, catalizando financiamiento semilla, promoviendo aprendizaje cruzado entre iniciativas y promoviendo la difusión de la acción climática de la región.")
-                             ),
-                             div(class = "img-modal",
-                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"),
-                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"),
-                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"),
-                                 img(class = "img-cont", src = "https://fakeimg.pl/200/"))
-                         )),
-                   panel(title = h3(id = "panel-filtros", ' FILTROS DE BÚSQUEDA'), color = "olive", collapsed = FALSE, width = 350,
+                   panel(title = h3(id = "panel-filtros", ' FILTROS DE BÚSQUEDA'), color = "olive", collapsed = FALSE, width = 250,
                          head = NULL,
                          body = list(
                            uiOutput('pais'),
@@ -220,13 +199,13 @@ ui <- panelsPage( styles = styles,
                            uiOutput('institucion')
                          )
                    ),
-                   panel(title = h3('RESULTADOS AVANZADOS'), color = "olive", collapsed = FALSE, width = 500,
+                   panel(title = h3('RESULTADOS AVANZADOS'), color = "olive", collapsed = FALSE, width = 350,
                          head = NULL,
                          body = list(
                            highchartOutput('mapa', height = 510)
                          )
                    ),
-                   panel(title =  uiOutput('title_info'), color = "olive", collapsed = FALSE, width = 550,
+                   panel(title =  uiOutput('title_info'), color = "olive", collapsed = FALSE, width = 450,
                          head = NULL,
                          body = list(
                            highchartOutput('barras'),
@@ -418,20 +397,17 @@ server <- function(input, output, session) {
   output$mapa <- renderHighchart({
     pais <- input$name_pais
     
-    dt_p <- data_filter()
+    dt_p <- info
     if (is.null(dt_p)) return()
-    
     dt_p <- dt_p %>% group_by(name = País) %>% summarise(z = n())
-    
+  
     if (is.null(pais)) {
       dt_p <- dt_p
     } else {
-      dt_f <- data.frame(name = setdiff(unique(info$País), pais), z = 3, color = '#b3ddec')
-      dt_i <- data.frame(name = pais, z = 15, color = '#1980A6')
+      dt_f <- dt_p %>% filter(!name %in% pais) %>% mutate(color = '#b3ddec')
+      dt_i <- dt_p %>% filter(name %in% pais) %>% mutate(color = '#1980A6')
       dt_p <- bind_rows(dt_i, dt_f)
     }
-    
-    #print(dt_p)
     
     myFunc <- JS("function(event) {Shiny.onInputChange('hcClicked',  {id:event.point.name, timestamp: new Date().getTime()});}")
     
@@ -446,7 +422,7 @@ server <- function(input, output, session) {
                         allowPointSelect = TRUE,
                         tooltip= list(
                           headerFormat= '',
-                          pointFormat='<b>{point.name}</b>'
+                          pointFormat='<b>{point.name}</b><br>{point.value}'
                         )) %>%
       hc_legend(enabled = FALSE) %>%
       hc_colorAxis(minColor = "#b3ddec", maxColor = "#1980A6") %>%
@@ -473,7 +449,7 @@ server <- function(input, output, session) {
     dt <- data_filter()
     if (is.null(dt)) return()
     dt <- dt %>% select(País, `Acciones climáticas`, Progreso, `Instituición o red`)
-    dt <- Filter(function(x) !all(is.na(x)), dt) 
+    #dt <- Filter(function(x) !all(is.na(x)), dt) 
     DT::datatable(dt,   
                   rownames = F,
                   options = list(
