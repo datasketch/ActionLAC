@@ -4,22 +4,13 @@ library(shinyinvoer)
 library(hgchmagic)
 library(DT)
 library(googlesheets4)
-
+library(shinycustomloader)
 
 sheets_deauth()
 
 # Data
 sheets_get("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
-info <- sheets_read("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
-
-info$País <- iconv(info$País,to="ASCII//TRANSLIT")
-
-info <- info %>% filter(País %in% c("Argentina", "Bolivia", "Paraguay", "Chile", "Brasil", "Ecuador", "Costa Rica", "Guatemala", "Mexico",
-                                    "Venezuela", "El Salvador", "Peru"))
-
-info <- info[!grepl('no|No|NO|nO',info$`Ya incluir en el mapa?`),]
 mapLam <- jsonlite::fromJSON("data/latin-america.json", simplifyVector = FALSE)
-
 
 styles <- 
   "
@@ -190,36 +181,50 @@ ui <- panelsPage( styles = styles,
                    ),
                    panel(title = h3(id = "panel-filtros", ' FILTROS DE BÚSQUEDA'), color = "olive", collapsed = FALSE, width = 250,
                          head = NULL,
-                         body = list(
-                           uiOutput('pais'),
+                         body = withLoader(list(
                            uiOutput('herramientas'),
                            uiOutput('area'),
                            uiOutput('tipo'),
                            uiOutput('actor'),
                            uiOutput('institucion')
-                         )
+                         ), loader = "loader1")
                    ),
-                   panel(title = h3('RESULTADOS AVANZADOS'), color = "olive", collapsed = FALSE, width = 350,
+                   panel(title = h3('FILTRA POR PAÍS'), color = "olive", collapsed = FALSE, width = 350,
                          head = NULL,
                          body = list(
-                           highchartOutput('mapa', height = 510)
-                         )
+                            uiOutput('pais'),
+                            withLoader(highchartOutput('mapa', height = 500),
+                            loader = "loader1"))
                    ),
                    panel(title =  uiOutput('title_info'), color = "olive", collapsed = FALSE, width = 450,
                          head = NULL,
-                         body = list(
+                         body = withLoader(list(
                            highchartOutput('barras'),
                            dataTableOutput('data_view')
-                         )
+                         ), loader = "loader1")
                    )
 )
 
 server <- function(input, output, session) {
   
+  
+  info <- reactive({
+    info <- read_sheet("1XvasoAL84X0--vArR6WWTAJASo2iL5bR88vTTXWYtQE")
+    info$País <- iconv(info$País,to="ASCII//TRANSLIT")
+    
+    info <- info %>% filter(País %in% c("Argentina", "Bolivia", "Paraguay", "Chile", "Brasil", "Ecuador", "Costa Rica", "Guatemala", "Mexico",
+                                        "Venezuela", "El Salvador", "Peru"))
+    
+    info <- info[!grepl('no|No|NO|nO',info$`Ya incluir en el mapa?`),]
+    info
+  })
+
+  
+  
   # filtros
   
   output$pais <- renderUI({
-    list_p <- sort(unique(info$País))
+    list_p <- sort(unique(info()$País))
     
     div(
       HTML('<div class= "info-tool title-filter"> PAÍS </div>'),
@@ -245,9 +250,9 @@ server <- function(input, output, session) {
   data_pais <- reactive({
     pais <- input$name_pais
     if (is.null(pais)) {
-      dt <- info
+      dt <- info()
     } else {
-      dt <- info %>% filter(País %in% pais)
+      dt <- info() %>% filter(País %in% pais)
     }
     dt
   })
@@ -397,15 +402,15 @@ server <- function(input, output, session) {
   output$mapa <- renderHighchart({
     pais <- input$name_pais
     
-    dt_p <- info
+    dt_p <- info()
     if (is.null(dt_p)) return()
     dt_p <- dt_p %>% group_by(name = País) %>% summarise(z = n())
   
-    if (is.null(pais)) {
-      dt_p <- dt_p
-    } else {
-      dt_f <- dt_p %>% filter(!name %in% pais) %>% mutate(color = '#b3ddec')
-      dt_i <- dt_p %>% filter(name %in% pais) %>% mutate(color = '#1980A6')
+    if (!is.null(pais)) {
+      dt_f <- dt_p %>% filter(!name %in% pais) 
+      dt_f$color <- '#b3ddec'
+      dt_i <- dt_p %>% filter(name %in% pais) 
+      dt_i$color <- '#1980A6'
       dt_p <- bind_rows(dt_i, dt_f)
     }
     
@@ -413,6 +418,11 @@ server <- function(input, output, session) {
     
     highchart(type = "map") %>%
       hc_chart(backgroundColor = "transparent",
+               margin= c(0,0,0,15),
+               spacingTop = 0,
+               spacingBottom = 0,
+               spacingLeft = 0,
+               spacingRight= 0,
                style = list(
                  fontFamily= 'Open Sans'
                )) %>%

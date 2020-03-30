@@ -5,8 +5,8 @@ account: randommonkey
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1541663
-bundleId: 2945503
+bundleId: 2945728
 url: https://randommonkey.shinyapps.io/cambioClimatico/
-when: 1585597202.33914
+when: 1585600313.59375
 asMultiple: FALSE
 asStatic: FALSE
